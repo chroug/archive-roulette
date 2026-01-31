@@ -4,7 +4,7 @@
     <title>Internet Archive Roulette | Random Search Generator</title>
     
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
     <meta name="google-site-verification" content="piWmBrN4Aa2I-9BI8YgXaaSemkGeq7s9RI51dyxIpag" />
     <meta name="description" content="The best way to search the Internet Archive at random. Spin the roulette to find random movies, vintage software, audio, and lost media from the Archive.org database.">
     <meta name="keywords" content="Internet Archive Random, Random Wayback Machine, Random Website Generator, Archive Roulette, Random Archive Search, StumbleUpon Alternative">
@@ -39,6 +39,7 @@
             overflow-x: hidden;
         }
 
+        /* --- MONITOR FRAME --- */
         .monitor-casing {
             width: 100%;
             max-width: 1200px;
@@ -88,6 +89,7 @@
         .boot-hidden { opacity: 0; }
         .boot-visible { opacity: 1; transition: opacity 0.5s; }
         
+        /* ANIMATIONS */
         .pop-in {
             animation: openPanel 0.5s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
             opacity: 1 !important; 
@@ -97,11 +99,13 @@
             to { transform: scale(1); opacity: 1; }
         }
 
+        /* Centered Modal Animation */
         @keyframes popModal {
             from { transform: translate(-50%, -50%) scale(0.8); opacity: 0; }
             to { transform: translate(-50%, -50%) scale(1); opacity: 1; }
         }
 
+        /* HEADER */
         .header {
             border-bottom: 2px solid var(--term-green);
             padding-bottom: 15px; margin-bottom: 25px;
@@ -109,7 +113,6 @@
             flex-wrap: wrap;
         }
         
-        /* 3. CHANGED TO H1 FOR SEO */
         h1.title { 
             font-size: 28px; letter-spacing: -1px; text-shadow: 0 0 5px var(--term-green); 
             margin: 0; padding: 0; font-family: inherit; font-weight: bold;
@@ -131,6 +134,7 @@
             font-family: monospace; min-height: 60px; white-space: pre-wrap;
         }
 
+        /* DASHBOARD GRID */
         .dashboard-grid { display: flex; flex-wrap: wrap; gap: 25px; margin-bottom: 30px; }
 
         .panel-col {
@@ -184,6 +188,7 @@
         .status-cursor::after { content: "█"; animation: blink 0.8s infinite; margin-left:5px; }
         @keyframes blink { 0% {opacity:0} 50% {opacity:1} 100% {opacity:0} }
 
+        /* --- MODALS --- */
         .modal-overlay {
             display: none; position: absolute;
             top: 50%; left: 50%; transform: translate(-50%, -50%);
@@ -204,6 +209,7 @@
         .res-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
         .res-item label { display: block; font-size: 11px; opacity: 0.6; margin-bottom: 4px; text-transform: uppercase;}
         .res-item span { font-size: 16px; color: #fff; font-weight: bold; min-height: 19px; display: block; white-space: pre-wrap; word-break: break-word; }
+        
         .res-desc { 
             font-size: 14px; line-height: 1.4; border: 1px solid var(--term-dim); 
             padding: 10px; background: #000; color: #ccc; margin-bottom: 20px;
@@ -229,6 +235,46 @@
 
         #manualOverlay p { margin-bottom: 15px; line-height: 1.5; color: #ccc; }
         #manualOverlay h2 { color: var(--term-green); border-bottom: 1px dashed var(--term-dim); padding-bottom: 5px; margin-top: 20px; }
+
+        /* --- MOBILE RESPONSIVE TWEAKS --- */
+        @media screen and (max-width: 768px) {
+            body { padding: 0; align-items: flex-start; }
+            
+            .monitor-casing { 
+                border-radius: 0; 
+                box-shadow: none; 
+                width: 100%; 
+                min-height: 100vh;
+                padding: 5px; 
+            }
+            
+            .crt-screen { 
+                border: none; 
+                box-shadow: inset 0 0 40px rgba(0,0,0,0.5); 
+                min-height: 100vh; 
+                padding: 15px; 
+            }
+
+            h1.title { font-size: 20px; text-align: center; width: 100%; }
+            .header-right { width: 100%; justify-content: space-between; margin-top: 15px; border-top: 1px dashed var(--term-dim); padding-top: 10px; }
+            
+            .dashboard-grid { gap: 15px; flex-direction: column; }
+            .panel-col { flex-basis: 100%; } /* Stack panels vertically */
+            
+            .opt { 
+                flex: 1 1 45%; 
+                text-align: center; 
+                padding: 12px; 
+                margin-bottom: 2px;
+                background: rgba(0,20,0,0.4); 
+            }
+            
+            button.main-btn { font-size: 20px; padding: 20px; width: 100%; }
+            
+            .modal-overlay { width: 95%; max-height: 85vh; padding: 20px; }
+            .btn-row { flex-direction: column; }
+            .action-btn { width: 100%; margin-bottom: 10px; }
+        }
 
     </style>
 </head>
@@ -393,7 +439,6 @@
         
         setTimeout(() => { 
             document.getElementById('ui-log').classList.add('boot-visible'); 
-            // 4. KEYWORD RICH BOOT LOG
             typeWriter("/* SYSTEM INITIALIZED... */\n/* CONNECTING TO INTERNET ARCHIVE DATABASE... */\n/* RANDOM SEARCH PROTOCOL READY... */\n/* NOTE: NULL INPUTS AUTOMATICALLY DEFAULT TO RANDOM/WILDCARD SELECTION */", 'ui-log');
         }, 1000);
 
@@ -646,6 +691,9 @@
     }
 
     function displayResult(item) {
+        // SAFETY: Force clear any existing timers first
+        clearAllTimers(); 
+        
         stopScanningEffect("TARGET LOCKED. DOWNLOADING METADATA...");
         currentId = item.identifier;
 
@@ -661,17 +709,19 @@
 
         document.getElementById('resultOverlay').style.display = 'block';
 
-        var title = item.title || "UNKNOWN";
-        var type = (item.mediatype || "UNKNOWN").toUpperCase();
+        // SAFE DATA EXTRACTION (Prevent Crashes)
+        var title = (item.title || "UNKNOWN").toString();
+        var type = (item.mediatype || "UNKNOWN").toString().toUpperCase();
         var size = formatBytes(item.item_size || 0);
-        var year = (item.date || "????").substring(0,4);
-        var pub = (item.publicdate || "Unknown").substring(0, 10);
-        var views = (item.downloads || "0") + "";
+        var year = (item.date || "????").toString().substring(0,4);
+        var pub = (item.publicdate || "Unknown").toString().substring(0, 10);
+        var views = (item.downloads || "0").toString();
+        
         var lang = item.language || "UNK";
         if(Array.isArray(lang)) lang = lang.join(', ');
-        lang = lang.toUpperCase();
+        lang = lang.toString().toUpperCase();
 
-        var rawDesc = item.description || "NO DATA";
+        var rawDesc = (item.description || "NO DATA").toString();
         var cleanDesc = rawDesc.replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]+>/g, '');
 
         streamText('meta-title', title, 0);
@@ -703,15 +753,14 @@
     function resetUI() {
         var btn = document.getElementById('goBtn');
         if(document.getElementById('resultOverlay').style.display === 'none') {
-            btn.innerText = "INITIALIZE SEARCH";
+            btn.innerText = "SPIN THE ROULETTE";
             btn.disabled = false;
         } else {
              btn.disabled = false;
-             btn.innerText = "INITIALIZE SEARCH";
+             btn.innerText = "SPIN THE ROULETTE";
         }
     }
 </script>
 
 </body>
 </html>
-
