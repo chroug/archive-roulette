@@ -1,17 +1,18 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>INTERNET_ARCHIVE_FINDER.EXE</title>
+    <title>INTERNET_ARCHIVE_ROULETTE.EXE</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="google-site-verification" content="piWmBrN4Aa2I-9BI8YgXaaSemkGeq7s9RI51dyxIpag" />
     
-    <meta name="description" content="A retro terminal interface for discovering random Internet Archive artifacts. Filter your search by Media Type (Movies, Books, Audio, Software), Era (1900s-2010s), Language, and Popularity (Obscure to Viral).">
-    <meta name="keywords" content="Internet Archive, Wayback Machine, Random File Generator, Retro Terminal, Random Movie Finder, Vintage Software, Live Music Archive, Old Books, Archive Roulette">
+    <meta name="description" content="A retro terminal interface for discovering random Internet Archive artifacts. Filter your search by Media Type (Movies, Books, Audio, Software), Era (1900s-2010s), Language, and Popularity.">
+    <meta name="keywords" content="Internet Archive, Wayback Machine, Random File Generator, Retro Terminal, Random Movie Finder, Vintage Software, Live Music Archive, Old Books, Archive Roulette, Lost Media">
     <meta name="author" content="The Archivist">
 
     <meta property="og:title" content="INTERNET_ARCHIVE_ROULETTE.EXE">
     <meta property="og:description" content="Spin the wheel. Find random Movies, Software, and Audio from any decade.">
     <meta property="og:type" content="website">
+
     <style>
         :root {
             --term-green: #33ff00; 
@@ -55,7 +56,6 @@
             100% { transform: scaleY(1) scaleX(1); opacity: 1; }
         }
 
-        /* --- THE SCREEN SURFACE --- */
         .crt-screen {
             background-color: var(--bg-color);
             border: 2px solid var(--term-dim);
@@ -72,7 +72,6 @@
             to { box-shadow: inset 0 0 50px rgba(51, 255, 0, 0.1); border-color: #26b300; }
         }
 
-        /* --- SCANLINES --- */
         .scanlines {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
@@ -89,17 +88,23 @@
         .boot-hidden { opacity: 0; }
         .boot-visible { opacity: 1; transition: opacity 0.5s; }
         
-        /* The Card Pop Animation */
+        /* ANIMATION FOR DASHBOARD PANELS (In Place) */
         .pop-in {
-            animation: openPanel 0.5s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
-            opacity: 1 !important; /* Force visible */
+            animation: popDashboard 0.5s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
+            opacity: 1 !important; 
         }
-        @keyframes openPanel {
+        @keyframes popDashboard {
             from { transform: scale(0.8); opacity: 0; }
             to { transform: scale(1); opacity: 1; }
         }
 
-        /* --- HEADER & LOG --- */
+        /* ANIMATION FOR MODALS (Centered) */
+        @keyframes popModal {
+            from { transform: translate(-50%, -50%) scale(0.8); opacity: 0; }
+            to { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        }
+
+        /* HEADER */
         .header {
             border-bottom: 2px solid var(--term-green);
             padding-bottom: 15px; margin-bottom: 25px;
@@ -107,7 +112,17 @@
             flex-wrap: wrap;
         }
         .title { font-size: 28px; letter-spacing: -1px; text-shadow: 0 0 5px var(--term-green); }
+        
+        .header-right { display: flex; align-items: center; gap: 15px; }
         .sys-info { font-size: 14px; opacity: 0.7; }
+        
+        /* MANUAL BUTTON */
+        .manual-btn {
+            background: transparent; border: 1px solid var(--term-green);
+            color: var(--term-green); cursor: pointer; padding: 2px 8px;
+            font-family: inherit; font-size: 12px; text-transform: uppercase;
+        }
+        .manual-btn:hover { background: var(--term-green); color: #000; }
 
         .sys-log {
             font-size: 12px;
@@ -121,13 +136,8 @@
             white-space: pre-wrap;
         }
 
-        /* --- FLEXBOX GRID (Maintained from V22) --- */
-        .dashboard-grid { 
-            display: flex; 
-            flex-wrap: wrap; 
-            gap: 25px; 
-            margin-bottom: 30px; 
-        }
+        /* GRID */
+        .dashboard-grid { display: flex; flex-wrap: wrap; gap: 25px; margin-bottom: 30px; }
 
         .panel-col {
             flex: 1 1 300px; 
@@ -136,7 +146,7 @@
             background: rgba(0, 20, 0, 0.1);
             position: relative;
             transition: box-shadow 0.3s;
-            opacity: 0; /* Initially hidden for boot */
+            opacity: 0; 
         }
         .panel-col:hover { box-shadow: 0 0 15px rgba(0, 50, 0, 0.5); }
 
@@ -145,14 +155,14 @@
             background: var(--bg-color); padding: 0 8px;
             font-size: 16px; border: 1px solid var(--term-dim);
             text-transform: uppercase;
-            min-width: 50px; /* Placeholder width */
+            min-width: 50px; 
         }
 
         .sub-label {
             display: block; font-size: 12px; color: #4f4; opacity: 0.7;
             margin-top: 15px; margin-bottom: 5px; text-transform: uppercase;
             border-bottom: 1px dashed var(--term-dim);
-            min-height: 15px; /* Placeholder height */
+            min-height: 15px; 
         }
 
         .opt-container { display: flex; flex-wrap: wrap; gap: 8px; opacity: 0; transition: opacity 1s; }
@@ -191,16 +201,23 @@
         button.main-btn:disabled { border-color: #444; color: #444; box-shadow: none; cursor: wait; transform:none; }
 
         .status-text { margin-top: 15px; font-size: 16px; min-height: 20px; font-style: italic; }
-        
-        /* --- RESULT OVERLAY --- */
-        #resultOverlay {
-            display: none; position: absolute;
-            top: 50%; left: 50%; transform: translate(-50%, -50%);
+        .status-cursor::after { content: "█"; animation: blink 0.8s infinite; margin-left:5px; }
+        @keyframes blink { 0% {opacity:0} 50% {opacity:1} 100% {opacity:0} }
+
+        /* --- MODAL OVERLAYS (SHARED) --- */
+        .modal-overlay {
+            display: none; 
+            position: absolute;
+            top: 50%; left: 50%; 
+            /* Default state before animation */
+            transform: translate(-50%, -50%); 
             width: 90%; max-width: 750px;
             background: #001a00; border: 2px solid var(--term-green);
             padding: 30px; z-index: 100; box-shadow: 0 0 150px #000;
             max-height: 90vh; overflow-y: auto;
-            animation: openPanel 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+            
+            /* Apply the Correct Centered Animation */
+            animation: popModal 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
         }
 
         .close-btn {
@@ -210,15 +227,14 @@
         }
         .close-btn:hover { color: var(--term-green); border-color: var(--term-green); text-shadow: 0 0 10px var(--term-green);}
 
+        /* RESULT SPECIFIC */
         .res-title { font-size: 24px; font-weight: bold; margin-bottom: 20px; border-bottom: 2px dashed var(--term-green); padding-bottom: 10px; }
         .res-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
         .res-item label { display: block; font-size: 11px; opacity: 0.6; margin-bottom: 4px; text-transform: uppercase;}
-        
         .res-item span { 
             font-size: 16px; color: #fff; font-weight: bold; min-height: 19px; 
             display: block; white-space: pre-wrap; word-break: break-word; 
         }
-
         .res-desc { 
             font-size: 14px; line-height: 1.4; border: 1px solid var(--term-dim); 
             padding: 10px; background: #000; color: #ccc; margin-bottom: 20px;
@@ -231,7 +247,7 @@
         .btn-row.visible { opacity: 1; }
 
         .action-btn {
-            width: 50%; padding: 15px; font-size: 16px; font-weight: bold;
+            flex: 1; padding: 15px; font-size: 14px; font-weight: bold;
             font-family: inherit; text-transform: uppercase; cursor: pointer;
             border: 2px solid var(--term-green); transition: 0.2s;
         }
@@ -239,6 +255,12 @@
         .btn-view:hover { background: #fff; box-shadow: 0 0 30px #fff; }
         .btn-dl { background: transparent; color: var(--term-green); }
         .btn-dl:hover { background: var(--term-dim); color: #fff; }
+        .btn-share { background: transparent; color: #4f4; border-color: #4f4; flex: 0.5; }
+        .btn-share:hover { background: #4f4; color: #000; }
+
+        /* MANUAL SPECIFIC */
+        #manualOverlay p { margin-bottom: 15px; line-height: 1.5; color: #ccc; }
+        #manualOverlay h2 { color: var(--term-green); border-bottom: 1px dashed var(--term-dim); padding-bottom: 5px; margin-top: 20px; }
 
     </style>
 </head>
@@ -249,8 +271,11 @@
         <div class="scanlines"></div>
         
         <div class="header boot-hidden" id="ui-header">
-            <div class="title">INTERNET_ARCHIVE_FINDER.EXE</div>
-            <div class="sys-info">SYS_READY</div>
+            <div class="title">INTERNET_ARCHIVE_ROULETTE.EXE</div>
+            <div class="header-right">
+                <button class="manual-btn" id="openManual">[ ? ] MANUAL</button>
+                <div class="sys-info">SYS_READY</div>
+            </div>
         </div>
 
         <div class="sys-log boot-hidden" id="ui-log"></div>
@@ -260,12 +285,12 @@
             <div class="panel-col" id="p1">
                 <div class="panel-label" id="lbl-1"></div>
                 <div class="opt-container" id="grp-type">
-                    <div class="opt" data-val="movies">Movies</div>
-                    <div class="opt" data-val="texts">Books</div>
-                    <div class="opt" data-val="audio">Audio</div>
-                    <div class="opt" data-val="etree">Live Music</div>
-                    <div class="opt" data-val="image">Images</div>
-                    <div class="opt" data-val="software">Software</div>
+                    <div class="opt" data-text="Movies" data-val="movies"></div>
+                    <div class="opt" data-text="Books" data-val="texts"></div>
+                    <div class="opt" data-text="Audio" data-val="audio"></div>
+                    <div class="opt" data-text="Live Music" data-val="etree"></div>
+                    <div class="opt" data-text="Images" data-val="image"></div>
+                    <div class="opt" data-text="Software" data-val="software"></div>
                 </div>
             </div>
 
@@ -273,25 +298,25 @@
                 <div class="panel-label" id="lbl-2"></div>
                 <span class="sub-label" id="sub-2a"></span>
                 <div class="opt-container" id="grp-vintage">
-                    <div class="opt" data-val="1900">1900s</div>
-                    <div class="opt" data-val="1910">1910s</div>
-                    <div class="opt" data-val="1920">1920s</div>
-                    <div class="opt" data-val="1930">1930s</div>
-                    <div class="opt" data-val="1940">1940s</div>
-                    <div class="opt" data-val="1950">1950s</div>
-                    <div class="opt" data-val="1960">1960s</div>
-                    <div class="opt" data-val="1970">1970s</div>
-                    <div class="opt" data-val="1980">1980s</div>
-                    <div class="opt" data-val="1990">1990s</div>
-                    <div class="opt" data-val="2000">2000s</div>
-                    <div class="opt" data-val="2010">2010s</div>
+                    <div class="opt" data-text="1900s" data-val="1900"></div>
+                    <div class="opt" data-text="1910s" data-val="1910"></div>
+                    <div class="opt" data-text="1920s" data-val="1920"></div>
+                    <div class="opt" data-text="1930s" data-val="1930"></div>
+                    <div class="opt" data-text="1940s" data-val="1940"></div>
+                    <div class="opt" data-text="1950s" data-val="1950"></div>
+                    <div class="opt" data-text="1960s" data-val="1960"></div>
+                    <div class="opt" data-text="1970s" data-val="1970"></div>
+                    <div class="opt" data-text="1980s" data-val="1980"></div>
+                    <div class="opt" data-text="1990s" data-val="1990"></div>
+                    <div class="opt" data-text="2000s" data-val="2000"></div>
+                    <div class="opt" data-text="2010s" data-val="2010"></div>
                 </div>
                 <span class="sub-label" id="sub-2b"></span>
                 <div class="opt-container" id="grp-upload">
-                    <div class="opt" data-val="old">Legacy (96-10)</div>
-                    <div class="opt" data-val="mid">Mid (11-19)</div>
-                    <div class="opt" data-val="new">Modern (20+)</div>
-                    <div class="opt" data-val="year">Last 365 Days</div>
+                    <div class="opt" data-text="Legacy(96-10)" data-val="old"></div>
+                    <div class="opt" data-text="Mid(11-19)" data-val="mid"></div>
+                    <div class="opt" data-text="Modern(20+)" data-val="new"></div>
+                    <div class="opt" data-text="Recent(365d)" data-val="year"></div>
                 </div>
             </div>
 
@@ -299,30 +324,30 @@
                 <div class="panel-label" id="lbl-3"></div>
                 <span class="sub-label" id="sub-3a"></span>
                 <div class="opt-container" id="grp-lang">
-                    <div class="opt" data-val="eng">English</div>
-                    <div class="opt" data-val="fre">French</div>
-                    <div class="opt" data-val="spa">Spanish</div>
-                    <div class="opt" data-val="ger">German</div>
-                    <div class="opt" data-val="ita">Italian</div>
-                    <div class="opt" data-val="jpn">Japanese</div>
-                    <div class="opt" data-val="rus">Russian</div>
-                    <div class="opt" data-val="chi">Chinese</div>
+                    <div class="opt" data-text="English" data-val="eng"></div>
+                    <div class="opt" data-text="French" data-val="fre"></div>
+                    <div class="opt" data-text="Spanish" data-val="spa"></div>
+                    <div class="opt" data-text="German" data-val="ger"></div>
+                    <div class="opt" data-text="Italian" data-val="ita"></div>
+                    <div class="opt" data-text="Japanese" data-val="jpn"></div>
+                    <div class="opt" data-text="Russian" data-val="rus"></div>
+                    <div class="opt" data-text="Chinese" data-val="chi"></div>
                 </div>
                 <span class="sub-label" id="sub-3b"></span>
                 <div class="opt-container" id="grp-views">
-                    <div class="opt" data-val="low">Obscure (<500)</div>
-                    <div class="opt" data-val="mid">Standard</div>
-                    <div class="opt" data-val="high">Viral (10k+)</div>
+                    <div class="opt" data-text="Obscure(<500)" data-val="low"></div>
+                    <div class="opt" data-text="Standard" data-val="mid"></div>
+                    <div class="opt" data-text="Viral(10k+)" data-val="high"></div>
                 </div>
             </div>
         </div>
 
         <div class="action-bar boot-hidden" id="ui-action">
-            <button id="goBtn" class="main-btn">INITIALIZE SEARCH</button>
-            <div class="status-text" id="status">System Ready. Awaiting parameters...</div>
+            <button id="goBtn" class="main-btn">SPIN THE ROULETTE</button>
+            <div class="status-text status-cursor" id="status">System Ready. Awaiting parameters...</div>
         </div>
 
-        <div id="resultOverlay">
+        <div id="resultOverlay" class="modal-overlay">
             <div class="close-btn" id="closeOverlay">[X]</div>
             <div class="res-title">INCOMING TRANSMISSION...</div>
             <div class="res-grid">
@@ -355,7 +380,33 @@
             
             <div class="btn-row" id="result-btns">
                 <button id="accessBtn" class="action-btn btn-view">>> VIEW PAGE <<</button>
-                <button id="dlBtn" class="action-btn btn-dl">>> DOWNLOAD FILES <<</button>
+                <button id="dlBtn" class="action-btn btn-dl">>> DOWNLOAD <<</button>
+                <button id="shareBtn" class="action-btn btn-share">[ COPY LINK ]</button>
+            </div>
+        </div>
+
+        <div id="manualOverlay" class="modal-overlay">
+            <div class="close-btn" id="closeManual">[X]</div>
+            <div class="res-title">README.TXT // SYSTEM MANUAL</div>
+            <div style="color: #eee; font-size: 14px;">
+                <p><strong>WELCOME TO THE INTERNET ARCHIVE ROULETTE</strong></p>
+                <p>This terminal allows you to teleport to random artifacts stored within the massive database of the <strong>Internet Archive (Wayback Machine)</strong>. Unlike standard search engines, this tool is designed for digital archeology and serendipitous discovery.</p>
+                
+                <h2>// WHAT CAN I FIND?</h2>
+                <p>The roulette scans millions of items including:</p>
+                <ul style="color:#ccc; padding-left:20px;">
+                    <li><strong>Lost Media & Movies:</strong> Public domain films, noir classics, and obscure home videos.</li>
+                    <li><strong>Vintage Software:</strong> Abandonware, DOS games, and CD-ROM images from the 90s.</li>
+                    <li><strong>Live Music Archive:</strong> Concert recordings from thousands of bands (Grateful Dead, etc).</li>
+                    <li><strong>Texts & Books:</strong> Scanned libraries, magazines, and historical documents.</li>
+                </ul>
+
+                <h2>// HOW TO USE</h2>
+                <p>1. Select specific <strong>FILTERS</strong> to narrow your search (e.g., "1990s" + "Software").<br>
+                2. Or leave everything <strong>BLANK</strong> for a completely random jump into history.<br>
+                3. Click <strong>SPIN THE ROULETTE</strong> to initiate the protocol.</p>
+
+                <p><em>"Preserving the past, one random bit at a time."</em></p>
             </div>
         </div>
 
@@ -367,49 +418,42 @@
     var retryCount = 0;
     var maxRetries = 10;
     var safeLimit = 9000;
+    var scanInterval = null;
     var activeTimers = [];
 
     // --- BOOT SEQUENCE ---
     window.onload = function() {
-        // 1. Header
         setTimeout(() => { document.getElementById('ui-header').classList.add('boot-visible'); }, 600);
-        
-        // 2. Log
         setTimeout(() => { 
             document.getElementById('ui-log').classList.add('boot-visible'); 
-            typeWriter("/* SYSTEM INITIALIZED... */\n/* LOADING CORE MODULES... OK */\n/* NOTE: NULL INPUTS AUTOMATICALLY DEFAULT TO RANDOM/WILDCARD SELECTION */", 'ui-log');
+            typeWriter("/* SYSTEM INITIALIZED... */\n/* CONNECTING TO INTERNET ARCHIVE DATABASE (API)... ESTABLISHED */\n/* NOTE: NULL INPUTS AUTOMATICALLY DEFAULT TO RANDOM/WILDCARD SELECTION */", 'ui-log');
         }, 1000);
 
-        // 3. Panels Pop (SIMULTANEOUS)
         setTimeout(() => {
             document.getElementById('p1').classList.add('pop-in');
             document.getElementById('p2').classList.add('pop-in');
             document.getElementById('p3').classList.add('pop-in');
         }, 2200);
 
-        // 4. Start Typing Text inside panels (Shortly after pop)
         setTimeout(() => {
-            // Panel 1
             streamText('lbl-1', '1. MEDIA TYPE', 0);
-            
-            // Panel 2
             streamText('lbl-2', '2. TIMELINE', 100);
             streamText('sub-2a', '>> Creation Era', 300);
             streamText('sub-2b', '>> Upload Era', 600);
-
-            // Panel 3
             streamText('lbl-3', '3. FILTERS', 200);
             streamText('sub-3a', '>> Language', 400);
             streamText('sub-3b', '>> Popularity', 700);
 
-            // Reveal all options
             document.querySelectorAll('.opt-container').forEach(el => {
                 setTimeout(() => el.classList.add('visible'), 800);
+            });
+            
+            document.querySelectorAll('.opt').forEach(opt => {
+                opt.innerText = opt.getAttribute('data-text');
             });
 
         }, 2600);
 
-        // 5. Action Bar
         setTimeout(() => { document.getElementById('ui-action').classList.add('boot-visible'); }, 3500);
     };
 
@@ -420,13 +464,13 @@
         }
     }
 
-    // --- CLEANUP ---
+    // --- UTILS ---
     function clearAllTimers() {
+        if(scanInterval) clearInterval(scanInterval);
         activeTimers.forEach(id => clearInterval(id));
         activeTimers = [];
     }
 
-    // --- STREAM TEXT ---
     function streamText(elementId, text, delay=0, speed=15) {
         if(!text) text = "UNKNOWN"; 
         var el = document.getElementById(elementId);
@@ -444,30 +488,6 @@
         activeTimers.push(startTimer);
     }
 
-    // --- UI INTERACTION ---
-    document.querySelectorAll('.opt').forEach(opt => {
-        opt.onclick = function() { this.classList.toggle('selected'); }
-    });
-
-    document.getElementById('closeOverlay').onclick = function() {
-        clearAllTimers(); 
-        document.getElementById('resultOverlay').style.display = 'none';
-        resetUI();
-    };
-
-    document.getElementById('accessBtn').onclick = function() {
-        if(currentId) window.open('https://archive.org/details/' + currentId, '_blank');
-    };
-
-    document.getElementById('dlBtn').onclick = function() {
-        if(currentId) window.open('https://archive.org/download/' + currentId, '_blank');
-    };
-
-    function getSelected(groupId) {
-        var els = document.querySelectorAll('#' + groupId + ' .opt.selected');
-        return Array.from(els).map(el => el.getAttribute('data-val'));
-    }
-
     function formatBytes(bytes, decimals = 2) {
         if (!+bytes) return '0 Bytes';
         const k = 1024;
@@ -477,14 +497,76 @@
         return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
     }
 
-    // --- SEARCH ENGINE ---
+    // --- UI EVENTS ---
+    document.querySelectorAll('.opt').forEach(opt => {
+        opt.onclick = function() { this.classList.toggle('selected'); }
+    });
+
+    // Close Result
+    document.getElementById('closeOverlay').onclick = function() {
+        clearAllTimers(); 
+        document.getElementById('resultOverlay').style.display = 'none';
+        resetUI();
+    };
+
+    // Manual Logic
+    document.getElementById('openManual').onclick = function() {
+        document.getElementById('manualOverlay').style.display = 'block';
+    };
+    document.getElementById('closeManual').onclick = function() {
+        document.getElementById('manualOverlay').style.display = 'none';
+    };
+
+    // Action Buttons
+    document.getElementById('accessBtn').onclick = function() {
+        if(currentId) window.open('https://archive.org/details/' + currentId, '_blank');
+    };
+    document.getElementById('dlBtn').onclick = function() {
+        if(currentId) window.open('https://archive.org/download/' + currentId, '_blank');
+    };
+    
+    // Copy Link Logic
+    document.getElementById('shareBtn').onclick = function() {
+        if(currentId) {
+            var url = 'https://archive.org/details/' + currentId;
+            navigator.clipboard.writeText(url).then(function() {
+                var btn = document.getElementById('shareBtn');
+                var originalText = btn.innerText;
+                btn.innerText = "COPIED!";
+                setTimeout(() => { btn.innerText = originalText; }, 2000);
+            });
+        }
+    };
+
+    function getSelected(groupId) {
+        var els = document.querySelectorAll('#' + groupId + ' .opt.selected');
+        return Array.from(els).map(el => el.getAttribute('data-val'));
+    }
+
+    // --- SEARCH LOGIC ---
     document.getElementById('goBtn').onclick = function() {
         clearAllTimers(); 
         document.getElementById('resultOverlay').style.display = 'none';
+        document.getElementById('manualOverlay').style.display = 'none';
         document.getElementById('result-btns').classList.remove('visible'); 
         retryCount = 0;
         startSearch();
     };
+
+    function startScanningEffect(startYear) {
+        var status = document.getElementById('status');
+        if(scanInterval) clearInterval(scanInterval);
+        scanInterval = setInterval(() => {
+            var randSector = Math.floor(Math.random() * 9999);
+            var randHex = Math.floor(Math.random()*16777215).toString(16).toUpperCase();
+            status.innerText = "SCANNING YEAR " + startYear + " // SECTOR [" + randSector + "-" + randHex + "]...";
+        }, 80);
+    }
+
+    function stopScanningEffect(msg) {
+        if(scanInterval) clearInterval(scanInterval);
+        document.getElementById('status').innerText = msg;
+    }
 
     function startSearch() {
         var btn = document.getElementById('goBtn');
@@ -543,7 +625,7 @@
         var randYear = validYears[Math.floor(Math.random() * validYears.length)];
         var finalQuery = baseQuery + ' AND date:[' + randYear + '-01-01 TO ' + randYear + '-12-31]';
 
-        document.getElementById('status').innerText = "SCANNING YEAR " + randYear + "...";
+        startScanningEffect(randYear);
         
         checkCount(finalQuery, function(total) {
             if (total === 0) { handleEmpty(); return; }
@@ -600,10 +682,10 @@
     }
 
     function displayResult(item) {
-        document.getElementById('status').innerText = "TARGET LOCKED. DOWNLOADING METADATA...";
+        stopScanningEffect("TARGET LOCKED. DOWNLOADING METADATA...");
         currentId = item.identifier;
 
-        // Reset text fields immediately
+        // Reset
         document.getElementById('meta-title').innerText = "";
         document.getElementById('meta-type').innerText = "";
         document.getElementById('meta-size').innerText = "";
@@ -615,7 +697,6 @@
 
         document.getElementById('resultOverlay').style.display = 'block';
 
-        // Prepare Data
         var title = item.title || "UNKNOWN";
         var type = (item.mediatype || "UNKNOWN").toUpperCase();
         var size = formatBytes(item.item_size || 0);
@@ -629,7 +710,6 @@
         var rawDesc = item.description || "NO DATA";
         var cleanDesc = rawDesc.replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]+>/g, '');
 
-        // Stream them in one by one using managed timers
         streamText('meta-title', title, 0);
         streamText('meta-type', type, 100);
         streamText('meta-size', size, 200);
@@ -639,7 +719,6 @@
         streamText('meta-lang', lang, 600);
         streamText('meta-desc', cleanDesc, 800, 3); 
 
-        // Show buttons after data loads
         let btnTimer = setTimeout(() => {
             document.getElementById('result-btns').classList.add('visible');
             document.getElementById('status').innerText = "TARGET ACQUIRED. AWAITING INPUT.";
@@ -652,7 +731,7 @@
             retryCount++;
             startSearch();
         } else {
-            document.getElementById('status').innerText = "SCAN FAILED. NO DATA IN THIS SECTOR.";
+            stopScanningEffect("SCAN FAILED. NO DATA IN THIS SECTOR.");
             resetUI();
         }
     }
@@ -670,5 +749,4 @@
 </script>
 
 </body>
-
 </html>
