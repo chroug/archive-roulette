@@ -1,16 +1,18 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>INTERNET_ARCHIVE_ROULETTE.EXE</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="google-site-verification" content="piWmBrN4Aa2I-9BI8YgXaaSemkGeq7s9RI51dyxIpag" />
+    <title>Internet Archive Roulette | Random Search Generator</title>
     
-    <meta name="description" content="A retro terminal interface for discovering random Internet Archive artifacts. Filter your search by Media Type (Movies, Books, Audio, Software), Era (1900s-2010s), Language, and Popularity.">
-    <meta name="keywords" content="Internet Archive, Wayback Machine, Random File Generator, Retro Terminal, Random Movie Finder, Vintage Software, Live Music Archive, Old Books, Archive Roulette, Lost Media">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    <meta name="description" content="The best way to search the Internet Archive at random. Spin the roulette to find random movies, vintage software, audio, and lost media from the Archive.org database.">
+    <meta name="keywords" content="Internet Archive Random, Random Wayback Machine, Random Website Generator, Archive Roulette, Random Archive Search, StumbleUpon Alternative">
     <meta name="author" content="The Archivist">
+    <meta name="robots" content="index, follow">
 
-    <meta property="og:title" content="INTERNET_ARCHIVE_ROULETTE.EXE">
-    <meta property="og:description" content="Spin the wheel. Find random Movies, Software, and Audio from any decade.">
+    <meta property="og:title" content="Internet Archive Roulette: Random Discovery Tool">
+    <meta property="og:description" content="Click the button to teleport to a random file on the Internet Archive. Movies, Games, and Music.">
     <meta property="og:type" content="website">
 
     <style>
@@ -37,7 +39,6 @@
             overflow-x: hidden;
         }
 
-        /* --- THE MONITOR FRAME --- */
         .monitor-casing {
             width: 100%;
             max-width: 1200px;
@@ -84,39 +85,39 @@
         }
         @keyframes scanMove { from {background-position: 0 0;} to {background-position: 0 100%;} }
 
-        /* --- BOOT STATES --- */
         .boot-hidden { opacity: 0; }
         .boot-visible { opacity: 1; transition: opacity 0.5s; }
         
-        /* ANIMATION FOR DASHBOARD PANELS (In Place) */
         .pop-in {
-            animation: popDashboard 0.5s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
+            animation: openPanel 0.5s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
             opacity: 1 !important; 
         }
-        @keyframes popDashboard {
+        @keyframes openPanel {
             from { transform: scale(0.8); opacity: 0; }
             to { transform: scale(1); opacity: 1; }
         }
 
-        /* ANIMATION FOR MODALS (Centered) */
         @keyframes popModal {
             from { transform: translate(-50%, -50%) scale(0.8); opacity: 0; }
             to { transform: translate(-50%, -50%) scale(1); opacity: 1; }
         }
 
-        /* HEADER */
         .header {
             border-bottom: 2px solid var(--term-green);
             padding-bottom: 15px; margin-bottom: 25px;
             display: flex; justify-content: space-between; align-items: flex-end;
             flex-wrap: wrap;
         }
-        .title { font-size: 28px; letter-spacing: -1px; text-shadow: 0 0 5px var(--term-green); }
+        
+        /* 3. CHANGED TO H1 FOR SEO */
+        h1.title { 
+            font-size: 28px; letter-spacing: -1px; text-shadow: 0 0 5px var(--term-green); 
+            margin: 0; padding: 0; font-family: inherit; font-weight: bold;
+        }
         
         .header-right { display: flex; align-items: center; gap: 15px; }
         .sys-info { font-size: 14px; opacity: 0.7; }
         
-        /* MANUAL BUTTON */
         .manual-btn {
             background: transparent; border: 1px solid var(--term-green);
             color: var(--term-green); cursor: pointer; padding: 2px 8px;
@@ -125,44 +126,30 @@
         .manual-btn:hover { background: var(--term-green); color: #000; }
 
         .sys-log {
-            font-size: 12px;
-            color: var(--term-dim);
-            margin-bottom: 25px;
-            padding: 10px;
-            border-left: 2px solid var(--term-dim);
-            background: rgba(0, 20, 0, 0.3);
-            font-family: monospace;
-            min-height: 60px;
-            white-space: pre-wrap;
+            font-size: 12px; color: var(--term-dim); margin-bottom: 25px; padding: 10px;
+            border-left: 2px solid var(--term-dim); background: rgba(0, 20, 0, 0.3);
+            font-family: monospace; min-height: 60px; white-space: pre-wrap;
         }
 
-        /* GRID */
         .dashboard-grid { display: flex; flex-wrap: wrap; gap: 25px; margin-bottom: 30px; }
 
         .panel-col {
-            flex: 1 1 300px; 
-            border: 1px solid var(--term-dim);
-            padding: 15px;
-            background: rgba(0, 20, 0, 0.1);
-            position: relative;
-            transition: box-shadow 0.3s;
-            opacity: 0; 
+            flex: 1 1 300px; border: 1px solid var(--term-dim); padding: 15px;
+            background: rgba(0, 20, 0, 0.1); position: relative;
+            transition: box-shadow 0.3s; opacity: 0; 
         }
         .panel-col:hover { box-shadow: 0 0 15px rgba(0, 50, 0, 0.5); }
 
         .panel-label {
-            position: absolute; top: -12px; left: 10px;
-            background: var(--bg-color); padding: 0 8px;
-            font-size: 16px; border: 1px solid var(--term-dim);
-            text-transform: uppercase;
-            min-width: 50px; 
+            position: absolute; top: -12px; left: 10px; background: var(--bg-color); 
+            padding: 0 8px; font-size: 16px; border: 1px solid var(--term-dim);
+            text-transform: uppercase; min-width: 50px; 
         }
 
         .sub-label {
             display: block; font-size: 12px; color: #4f4; opacity: 0.7;
             margin-top: 15px; margin-bottom: 5px; text-transform: uppercase;
-            border-bottom: 1px dashed var(--term-dim);
-            min-height: 15px; 
+            border-bottom: 1px dashed var(--term-dim); min-height: 15px; 
         }
 
         .opt-container { display: flex; flex-wrap: wrap; gap: 8px; opacity: 0; transition: opacity 1s; }
@@ -173,15 +160,12 @@
             border: 1px solid transparent; transition: 0.1s; user-select: none;
         }
         .opt:hover { background: var(--term-dim); color: #fff; text-shadow: 0 0 8px #fff; }
-        .opt.selected {
-            background: var(--term-green); color: #000; box-shadow: 0 0 10px var(--term-green);
-        }
+        .opt.selected { background: var(--term-green); color: #000; box-shadow: 0 0 10px var(--term-green); }
         .opt::before { content: '[ ] '; opacity: 0.6; }
         .opt.selected::before { content: '[X] '; opacity: 1; }
 
         .action-bar {
-            text-align: center; margin-top: 20px; padding-top: 20px;
-            border-top: 2px solid var(--term-dim);
+            text-align: center; margin-top: 20px; padding-top: 20px; border-top: 2px solid var(--term-dim);
         }
 
         button.main-btn {
@@ -192,11 +176,7 @@
             box-shadow: 0 0 10px var(--term-dim); transition: all 0.1s;
             width: 100%; max-width: 500px;
         }
-        button.main-btn:hover { 
-            background: var(--term-green); color: #000; 
-            box-shadow: 0 0 40px var(--term-green); 
-            transform: scale(1.02);
-        }
+        button.main-btn:hover { background: var(--term-green); color: #000; box-shadow: 0 0 40px var(--term-green); transform: scale(1.02); }
         button.main-btn:active { transform: scale(0.98); }
         button.main-btn:disabled { border-color: #444; color: #444; box-shadow: none; cursor: wait; transform:none; }
 
@@ -204,37 +184,26 @@
         .status-cursor::after { content: "█"; animation: blink 0.8s infinite; margin-left:5px; }
         @keyframes blink { 0% {opacity:0} 50% {opacity:1} 100% {opacity:0} }
 
-        /* --- MODAL OVERLAYS (SHARED) --- */
         .modal-overlay {
-            display: none; 
-            position: absolute;
-            top: 50%; left: 50%; 
-            /* Default state before animation */
-            transform: translate(-50%, -50%); 
+            display: none; position: absolute;
+            top: 50%; left: 50%; transform: translate(-50%, -50%);
             width: 90%; max-width: 750px;
             background: #001a00; border: 2px solid var(--term-green);
             padding: 30px; z-index: 100; box-shadow: 0 0 150px #000;
             max-height: 90vh; overflow-y: auto;
-            
-            /* Apply the Correct Centered Animation */
             animation: popModal 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
         }
 
         .close-btn {
-            position: absolute; top: 15px; right: 20px;
-            font-size: 24px; color: var(--term-dim); cursor: pointer;
-            font-weight: bold; border: 1px solid transparent; padding: 0 5px;
+            position: absolute; top: 15px; right: 20px; font-size: 24px; color: var(--term-dim); 
+            cursor: pointer; font-weight: bold; border: 1px solid transparent; padding: 0 5px;
         }
         .close-btn:hover { color: var(--term-green); border-color: var(--term-green); text-shadow: 0 0 10px var(--term-green);}
 
-        /* RESULT SPECIFIC */
         .res-title { font-size: 24px; font-weight: bold; margin-bottom: 20px; border-bottom: 2px dashed var(--term-green); padding-bottom: 10px; }
         .res-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
         .res-item label { display: block; font-size: 11px; opacity: 0.6; margin-bottom: 4px; text-transform: uppercase;}
-        .res-item span { 
-            font-size: 16px; color: #fff; font-weight: bold; min-height: 19px; 
-            display: block; white-space: pre-wrap; word-break: break-word; 
-        }
+        .res-item span { font-size: 16px; color: #fff; font-weight: bold; min-height: 19px; display: block; white-space: pre-wrap; word-break: break-word; }
         .res-desc { 
             font-size: 14px; line-height: 1.4; border: 1px solid var(--term-dim); 
             padding: 10px; background: #000; color: #ccc; margin-bottom: 20px;
@@ -258,7 +227,6 @@
         .btn-share { background: transparent; color: #4f4; border-color: #4f4; flex: 0.5; }
         .btn-share:hover { background: #4f4; color: #000; }
 
-        /* MANUAL SPECIFIC */
         #manualOverlay p { margin-bottom: 15px; line-height: 1.5; color: #ccc; }
         #manualOverlay h2 { color: var(--term-green); border-bottom: 1px dashed var(--term-dim); padding-bottom: 5px; margin-top: 20px; }
 
@@ -271,7 +239,7 @@
         <div class="scanlines"></div>
         
         <div class="header boot-hidden" id="ui-header">
-            <div class="title">INTERNET_ARCHIVE_ROULETTE.EXE</div>
+            <h1 class="title">INTERNET_ARCHIVE_ROULETTE.EXE</h1>
             <div class="header-right">
                 <button class="manual-btn" id="openManual">[ ? ] MANUAL</button>
                 <div class="sys-info">SYS_READY</div>
@@ -390,23 +358,21 @@
             <div class="res-title">README.TXT // SYSTEM MANUAL</div>
             <div style="color: #eee; font-size: 14px;">
                 <p><strong>WELCOME TO THE INTERNET ARCHIVE ROULETTE</strong></p>
-                <p>This terminal allows you to teleport to random artifacts stored within the massive database of the <strong>Internet Archive (Wayback Machine)</strong>. Unlike standard search engines, this tool is designed for digital archeology and serendipitous discovery.</p>
+                <p>This terminal allows you to execute a <strong>random internet archive search</strong> instantly. It serves as a portal to the massive database of the Wayback Machine and Archive.org.</p>
                 
-                <h2>// WHAT CAN I FIND?</h2>
-                <p>The roulette scans millions of items including:</p>
+                <h2>// SEARCH CAPABILITIES</h2>
+                <p>Use this tool to discover:</p>
                 <ul style="color:#ccc; padding-left:20px;">
-                    <li><strong>Lost Media & Movies:</strong> Public domain films, noir classics, and obscure home videos.</li>
-                    <li><strong>Vintage Software:</strong> Abandonware, DOS games, and CD-ROM images from the 90s.</li>
-                    <li><strong>Live Music Archive:</strong> Concert recordings from thousands of bands (Grateful Dead, etc).</li>
-                    <li><strong>Texts & Books:</strong> Scanned libraries, magazines, and historical documents.</li>
+                    <li><strong>Random Movies:</strong> Find public domain films, horror classics, and obscure footage.</li>
+                    <li><strong>Vintage Software:</strong> Explore the DOS library, retro games, and abandonware.</li>
+                    <li><strong>Live Music Archive:</strong> Listen to random concert recordings.</li>
+                    <li><strong>Random Books:</strong> Digital texts, manuals, and historical documents.</li>
                 </ul>
 
-                <h2>// HOW TO USE</h2>
-                <p>1. Select specific <strong>FILTERS</strong> to narrow your search (e.g., "1990s" + "Software").<br>
-                2. Or leave everything <strong>BLANK</strong> for a completely random jump into history.<br>
-                3. Click <strong>SPIN THE ROULETTE</strong> to initiate the protocol.</p>
-
-                <p><em>"Preserving the past, one random bit at a time."</em></p>
+                <h2>// INSTRUCTIONS</h2>
+                <p>1. <strong>SELECT FILTERS</strong> (optional) to target specific decades or media types.<br>
+                2. <strong>LEAVE BLANK</strong> for a completely random internet archive experience.<br>
+                3. Click <strong>SPIN THE ROULETTE</strong> to retrieve a file.</p>
             </div>
         </div>
 
@@ -424,9 +390,11 @@
     // --- BOOT SEQUENCE ---
     window.onload = function() {
         setTimeout(() => { document.getElementById('ui-header').classList.add('boot-visible'); }, 600);
+        
         setTimeout(() => { 
             document.getElementById('ui-log').classList.add('boot-visible'); 
-            typeWriter("/* SYSTEM INITIALIZED... */\n/* CONNECTING TO INTERNET ARCHIVE DATABASE (API)... ESTABLISHED */\n/* NOTE: NULL INPUTS AUTOMATICALLY DEFAULT TO RANDOM/WILDCARD SELECTION */", 'ui-log');
+            // 4. KEYWORD RICH BOOT LOG
+            typeWriter("/* SYSTEM INITIALIZED... */\n/* CONNECTING TO INTERNET ARCHIVE DATABASE... */\n/* RANDOM SEARCH PROTOCOL READY... */\n/* NOTE: NULL INPUTS AUTOMATICALLY DEFAULT TO RANDOM/WILDCARD SELECTION */", 'ui-log');
         }, 1000);
 
         setTimeout(() => {
@@ -502,14 +470,12 @@
         opt.onclick = function() { this.classList.toggle('selected'); }
     });
 
-    // Close Result
     document.getElementById('closeOverlay').onclick = function() {
         clearAllTimers(); 
         document.getElementById('resultOverlay').style.display = 'none';
         resetUI();
     };
 
-    // Manual Logic
     document.getElementById('openManual').onclick = function() {
         document.getElementById('manualOverlay').style.display = 'block';
     };
@@ -517,7 +483,6 @@
         document.getElementById('manualOverlay').style.display = 'none';
     };
 
-    // Action Buttons
     document.getElementById('accessBtn').onclick = function() {
         if(currentId) window.open('https://archive.org/details/' + currentId, '_blank');
     };
@@ -525,7 +490,6 @@
         if(currentId) window.open('https://archive.org/download/' + currentId, '_blank');
     };
     
-    // Copy Link Logic
     document.getElementById('shareBtn').onclick = function() {
         if(currentId) {
             var url = 'https://archive.org/details/' + currentId;
